@@ -81,6 +81,38 @@ Extension → NativeHost → Tool
 - If Keycloak is compromised, public keys can be swapped
 - The 5-minute TTL (configurable) means the human must be present; long-running agents need to re-request
 
+## Integrating with Claude Code
+
+There are three integration modes, with different enforcement levels:
+
+| Mode | How | Enforcement |
+|------|-----|-------------|
+| **Hooks** (recommended) | `hooks/` package + `hitl-install` | **Hard** — Claude Code harness blocks tool calls before the agent sees them |
+| **MCP server** | `mcp/` package + MCP config | Soft — agent calls `hitl.request_approval()` when instructed |
+| **Skill** | `skill/` package + `/hitl-approve` | Soft — agent invokes the slash command when instructed |
+
+Use **hooks for production**. The MCP and skill are for agent-initiated checks; a rogue or autonomous agent can skip them. Hooks run outside the agent's control.
+
+### Hook enforcement flow
+
+```
+Claude Code agent
+      │  wants to run: rm -rf /tmp/x
+      ▼
+PreToolUse hook fires   ← outside agent control
+      │
+      │  hitl-hook reads {"tool_name":"Bash","tool_input":{"command":"rm -rf /tmp/x"}}
+      ▼
+Classify: dangerous? yes
+      │
+      │  challenge → browser extension popup
+      ▼
+Human clicks Approve / Deny
+      │
+      │  {"decision":"approve"} exit 0   →  tool runs
+      │  {"decision":"block",...} exit 1  →  tool blocked, agent sees reason
+```
+
 ## Repository Structure
 
 ```
@@ -94,7 +126,8 @@ hitl/
 ├── cli/                   # Demo CLI: hitl request --action "..."
 ├── tool/                  # @require_human_approval decorator demo
 ├── skill/                 # Claude Code /hitl-approve slash command
-└── mcp/                   # FastMCP server with request_approval tool
+├── mcp/                   # FastMCP server with request_approval tool
+└── hooks/                 # Claude Code PreToolUse hooks — enforced gating
 ```
 
 ## Quick Start
@@ -142,10 +175,37 @@ This installs the native messaging host manifest so the extension can communicat
 
 ```bash
 cd /path/to/hitl
-uv pip install -e cli/ tool/ skill/ mcp/
+uv pip install -e cli/ tool/ skill/ mcp/ hooks/
 ```
 
-### 5. Log In via the Extension
+### 5. Install Claude Code Hooks
+
+This is the step that makes HITL enforced rather than advisory.
+
+```bash
+# Project-level (recommended — commit .claude/settings.json to share with your team)
+hitl-install
+
+# User-level (applies to all your Claude Code sessions)
+hitl-install --global
+
+# Preview what would be written without modifying anything
+hitl-install --show
+hitl-install --dry-run
+```
+
+The installer merges into `.claude/settings.json`, preserving any existing configuration.
+
+**Verify the hook works:**
+```bash
+# Should trigger a popup (dangerous command):
+echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /tmp/x"}}' | hitl-hook
+
+# Should approve immediately without a popup (safe command):
+echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | hitl-hook
+```
+
+### 6. Log In via the Extension
 
 Click the extension icon in the browser toolbar → "Login with Keycloak" → register with a Keycloak account. Your Ed25519 keypair is generated and your public key is stored in Keycloak.
 
@@ -163,6 +223,19 @@ User: alice@example.com
 Challenge: a3f1b2... (nonce truncated)
 ```
 
+### Disabling hooks temporarily
+
+```bash
+# For safe read-only work (no popup):
+HITL_POLICY=disabled claude "what does this function do?"
+
+# Fail open when extension isn't running (e.g. CI):
+HITL_UNAVAILABLE_POLICY=allow claude "run the tests"
+
+# Remove hooks from settings:
+hitl-install --uninstall
+```
+
 ## Package Documentation
 
 - [`oauth/README.md`](oauth/README.md) — Keycloak setup and configuration
@@ -171,6 +244,7 @@ Challenge: a3f1b2... (nonce truncated)
 - [`tool/README.md`](tool/README.md) — `@require_human_approval` decorator
 - [`skill/README.md`](skill/README.md) — Claude Code skill usage
 - [`mcp/README.md`](mcp/README.md) — MCP server configuration
+- [`hooks/README.md`](hooks/README.md) — Claude Code hook enforcement (install this)
 
 ## Development
 

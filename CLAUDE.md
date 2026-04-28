@@ -14,6 +14,19 @@ Cryptographically signed human-in-the-loop (HITL) permission system. When an AI 
 | `tool/` | Python 3.11 | `@require_human_approval` decorator demo |
 | `skill/` | Python 3.11 | Claude Code slash command `/hitl-approve` |
 | `mcp/` | Python 3.11 | FastMCP server with `request_approval` tool |
+| `hooks/` | Python 3.11 | **Claude Code PreToolUse hooks — enforced gating** |
+
+## Integration Modes (read this first)
+
+There are three ways to integrate HITL with Claude Code, with different enforcement levels:
+
+| Mode | Package | Enforcement | How |
+|------|---------|-------------|-----|
+| **Hooks** (recommended) | `hooks/` | **Hard** — agent cannot bypass | `PreToolUse` hooks run at harness level outside agent control |
+| **MCP** | `mcp/` | Soft — agent must cooperate | Agent calls `hitl.request_approval()` when instructed |
+| **Skill** | `skill/` | Soft — agent must cooperate | Agent invokes `/hitl-approve` slash command |
+
+**Use hooks for production.** The MCP and skill are useful for agent-initiated checks (e.g. "before I do X, let me verify") but do not prevent a rogue agent from skipping them.
 
 ## CRITICAL Security Invariants
 
@@ -43,12 +56,13 @@ cd extension && npm run dev                    # watch mode
 cd extension && npm test                       # Vitest unit tests
 
 # Python packages (run from repo root)
-uv pip install -e cli/ tool/ skill/ mcp/
+uv pip install -e cli/ tool/ skill/ mcp/ hooks/
 
 # Per-package tests
 cd cli && uv run pytest
 cd tool && uv run pytest
 cd mcp && uv run pytest
+cd hooks && uv run pytest
 
 # Infrastructure
 docker compose up -d          # Keycloak on :8080, Redis on :6379
@@ -68,15 +82,45 @@ cd extension && npm run build
 # Firefox: about:debugging → Load Temporary Add-on → select extension/dist-firefox/manifest.json
 
 # 3. Install Python packages
-cd /path/to/hitl && uv pip install -e cli/ tool/ skill/ mcp/
+cd /path/to/hitl && uv pip install -e cli/ tool/ skill/ mcp/ hooks/
 
 # 4. Register native messaging host (one-time setup)
-cd extension && node signing-host/install.js
+node extension/src/signing-host/install.js
 
-# 5. Test the golden path
+# 5. Install Claude Code hooks (enforced gating)
+hitl-install              # project-level (recommended)
+# or: hitl-install --global   # user-level
+
+# 6. Test the golden path
 hitl request --action "delete /tmp/testfile"
 # → Browser popup appears → click Approve → terminal prints: APPROVED
+
+# 7. Test hook enforcement directly
+echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /tmp/x"}}' | hitl-hook
+# → popup appears → approve/deny → {"decision":"approve"} or {"decision":"block",...}
 ```
+
+## Hooks Configuration
+
+The hooks package (`hooks/`) intercepts Claude Code tool calls at the harness level.
+
+**Disable hooks temporarily** (e.g. for safe exploratory work):
+```bash
+HITL_POLICY=disabled claude "what files are in src/?"
+```
+
+**Fail open when extension is unavailable** (e.g. during CI):
+```bash
+HITL_UNAVAILABLE_POLICY=allow claude "run the tests"
+```
+
+**Customise which commands require approval** — copy the example config:
+```bash
+cp hooks/install/hitl-hooks-example.json .claude/hitl-hooks.json
+# Edit .claude/hitl-hooks.json to add/remove patterns
+```
+
+See `hooks/README.md` for the full config reference.
 
 ## Keycloak Admin
 
@@ -123,3 +167,7 @@ Required for Python packages:
 - `EXTENSION_SIGNING_PORT` (default `7331`)
 - `CHALLENGE_TTL_SECONDS` (default `300`)
 - `NONCE_STORE_REDIS_URL`
+
+Hooks-specific (optional, override defaults):
+- `HITL_POLICY` — `enforce` (default) | `audit` | `disabled`
+- `HITL_UNAVAILABLE_POLICY` — `block` (default) | `allow`

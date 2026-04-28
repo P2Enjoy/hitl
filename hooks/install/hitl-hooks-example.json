@@ -1,0 +1,39 @@
+{
+  "_comment": "Project-level HITL hooks config. Save as .claude/hitl-hooks.json to override defaults.",
+
+  "policy": "enforce",
+  "unavailable_policy": "block",
+
+  "bash": {
+    "require_patterns": [
+      "\\brm\\s+(-[a-zA-Z]*[rf][a-zA-Z]*\\s+|--recursive|--force)",
+      "\\bsudo\\b",
+      "git\\s+push",
+      "git\\s+reset\\s+--hard",
+      "curl\\s+.*\\|\\s*(ba)?sh",
+      "terraform\\s+(destroy|apply)"
+    ],
+    "bypass_patterns": [
+      "^ls(\\s|$)",
+      "^cat\\s+",
+      "^echo\\b",
+      "^git\\s+(status|log|diff|show)(\\s|$)",
+      "^grep\\b",
+      "^find\\s+",
+      "^pytest(\\s|$)",
+      "^ruff\\b",
+      "^mypy\\b"
+    ],
+    "default": "allow"
+  },
+
+  "write": {
+    "require_paths": [
+      "/etc/",
+      "/usr/",
+      "~/.ssh/",
+      "~/.aws/"
+    ],
+    "default": "allow"
+  }
+}

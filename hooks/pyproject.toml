@@ -1,0 +1,39 @@
+[project]
+name = "hitl-hooks"
+version = "0.1.0"
+description = "Claude Code PreToolUse hooks for enforced HITL approval — blocks tool calls until a human cryptographically signs off"
+requires-python = ">=3.11"
+dependencies = [
+    "hitl-cli",
+    "click>=8.1",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+hitl-hook    = "hitl_hooks.runner:main"
+hitl-install = "hitl_hooks.installer:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
