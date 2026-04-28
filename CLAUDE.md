@@ -10,23 +10,24 @@ Cryptographically signed human-in-the-loop (HITL) permission system. When an AI 
 |---------|----------|-------------|
 | `oauth/` | Bash/JSON | Keycloak 24 realm config + init scripts |
 | `extension/` | TypeScript/MV3 | Browser extension — keypair holder and signer |
-| `cli/` | Python 3.11 | Demo CLI: `hitl request --action "..."` |
-| `tool/` | Python 3.11 | `@require_human_approval` decorator demo |
-| `skill/` | Python 3.11 | Claude Code slash command `/hitl-approve` |
-| `mcp/` | Python 3.11 | FastMCP server with `request_approval` tool |
-| `hooks/` | Python 3.11 | **Claude Code PreToolUse hooks — enforced gating** |
+| `cli/` | Python 3.11 | Shared signing library + demo CLI |
+| `tool/` | Python 3.11 | **Pattern 1**: `@require_human_approval` decorator |
+| `skill/` | Python 3.11 | **Pattern 2**: Claude Code `/hitl-approve` slash command |
+| `mcp/` | Python 3.11 | **Pattern 3**: FastMCP server with `request_approval` tool |
+| `hooks/` | Python 3.11 | **Pattern 4**: Claude Code `PreToolUse` hook enforcement |
 
-## Integration Modes (read this first)
+## Four Integration Patterns
 
-There are three ways to integrate HITL with Claude Code, with different enforcement levels:
+HITL works across every AI integration scenario. Each pattern is independent and addresses a different use case. They can be combined.
 
-| Mode | Package | Enforcement | How |
-|------|---------|-------------|-----|
-| **Hooks** (recommended) | `hooks/` | **Hard** — agent cannot bypass | `PreToolUse` hooks run at harness level outside agent control |
-| **MCP** | `mcp/` | Soft — agent must cooperate | Agent calls `hitl.request_approval()` when instructed |
-| **Skill** | `skill/` | Soft — agent must cooperate | Agent invokes `/hitl-approve` slash command |
+| Pattern | Package | Use case | Who triggers the check |
+|---------|---------|----------|------------------------|
+| **1 — Tool** | `tool/` | You own the tool code; gate the function itself | The tool, unconditionally |
+| **2 — Skill** | `skill/` | Agent-driven Claude Code workflows | The agent, when it decides to ask |
+| **3 — MCP** | `mcp/` | MCP-compatible agents; multi-agent systems | The agent, via standard MCP tool call |
+| **4 — Hook** | `hooks/` | Session-level policy; any deployment | The Claude Code harness, regardless of agent |
 
-**Use hooks for production.** The MCP and skill are useful for agent-initiated checks (e.g. "before I do X, let me verify") but do not prevent a rogue agent from skipping them.
+The underlying signing infrastructure (`oauth/`, `extension/`, `cli/`) is identical for all four. Only the triggering point differs.
 
 ## CRITICAL Security Invariants
 
@@ -81,46 +82,31 @@ cd extension && npm run build
 # Chrome: chrome://extensions → Load unpacked → select extension/dist-chrome/
 # Firefox: about:debugging → Load Temporary Add-on → select extension/dist-firefox/manifest.json
 
-# 3. Install Python packages
-cd /path/to/hitl && uv pip install -e cli/ tool/ skill/ mcp/ hooks/
+# 3. Install Python packages (all patterns)
+uv pip install -e cli/ tool/ skill/ mcp/ hooks/
 
-# 4. Register native messaging host (one-time setup)
+# 4. Register native messaging host (one-time, required for all patterns)
 node extension/src/signing-host/install.js
 
-# 5. Install Claude Code hooks (enforced gating)
-hitl-install              # project-level (recommended)
-# or: hitl-install --global   # user-level
-
-# 6. Test the golden path
-hitl request --action "delete /tmp/testfile"
-# → Browser popup appears → click Approve → terminal prints: APPROVED
-
-# 7. Test hook enforcement directly
-echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /tmp/x"}}' | hitl-hook
-# → popup appears → approve/deny → {"decision":"approve"} or {"decision":"block",...}
+# 5. Test each pattern
+python -m hitl_tool.demo_tool           # Pattern 1: tool decorator
+hitl-approve --action "test action"     # Pattern 2: skill
+# Pattern 3: add mcp_config.json to Claude config, then use request_approval() in a session
+hitl-install && hitl-hook               # Pattern 4: hook enforcement
 ```
 
-## Hooks Configuration
+## Hooks Configuration (Pattern 4)
 
-The hooks package (`hooks/`) intercepts Claude Code tool calls at the harness level.
-
-**Disable hooks temporarily** (e.g. for safe exploratory work):
 ```bash
-HITL_POLICY=disabled claude "what files are in src/?"
-```
+hitl-install              # install in current project
+hitl-install --global     # install for all Claude Code sessions
+hitl-install --uninstall  # remove
+HITL_POLICY=disabled      # turn off without uninstalling (env var)
+HITL_UNAVAILABLE_POLICY=allow  # fail open when extension isn't running
 
-**Fail open when extension is unavailable** (e.g. during CI):
-```bash
-HITL_UNAVAILABLE_POLICY=allow claude "run the tests"
-```
-
-**Customise which commands require approval** — copy the example config:
-```bash
+# Customise dangerous/safe command patterns:
 cp hooks/install/hitl-hooks-example.json .claude/hitl-hooks.json
-# Edit .claude/hitl-hooks.json to add/remove patterns
 ```
-
-See `hooks/README.md` for the full config reference.
 
 ## Keycloak Admin
 

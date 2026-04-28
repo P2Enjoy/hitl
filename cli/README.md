@@ -1,6 +1,8 @@
-# cli/ — HITL Command-Line Interface
+# cli/ — Shared Signing Library + Demo CLI
 
-Demo CLI that exercises the full HITL sign→verify flow.
+The `hitl_cli` package is the **shared foundation** for all four HITL integration patterns. It provides challenge generation, signature verification, and the Keycloak client. The `tool/`, `skill/`, `mcp/`, and `hooks/` packages all depend on it.
+
+The `hitl` CLI is a demo that exercises the full sign→verify flow end-to-end, useful for testing and scripting. It is not itself an integration pattern — see the [root README](../README.md) for the four patterns.
 
 ## Installation
 

@@ -1,6 +1,10 @@
-# tool/ — @require_human_approval Decorator
+# tool/ — Pattern 1: HITL-enabled Tool
 
-Demonstrates how any Python tool integrates HITL verification with a single decorator.
+**Use this pattern when**: you own the tool's Python code and want the tool itself to be the approval gate — so it can never run without a human signature, regardless of which agent calls it or how it's invoked.
+
+The check is inside the function, not outside it. This means approval travels with the tool wherever it's deployed: called by an agent, invoked from a script, or used in a pipeline.
+
+For other HITL integration patterns see the [root README](../README.md).
 
 ## Usage
 

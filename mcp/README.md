@@ -1,4 +1,12 @@
-# mcp/ — HITL MCP Server
+# mcp/ — Pattern 3: HITL-enabled MCP Server
+
+**Use this pattern when**: you're building with MCP-compatible agents and want human approval available as a standard, discoverable tool — one the agent can call like any other capability without any special SDK or integration code.
+
+This is particularly useful in multi-agent systems where individual agents need to escalate decisions upward, or in any architecture where the agent framework speaks MCP natively and you want HITL to be a first-class tool in its tool list.
+
+For other HITL integration patterns see the [root README](../README.md).
+
+---
 
 FastMCP server that exposes HITL verification as MCP tools, usable by any MCP-compatible agent (Claude, etc.).
 

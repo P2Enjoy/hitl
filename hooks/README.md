@@ -1,6 +1,8 @@
-# hooks/ — Claude Code PreToolUse Enforcement
+# hooks/ — Pattern 4: HITL-enabled Agent Hook
 
-This package closes the enforcement gap. Without it, HITL is advisory — the agent can ignore it. With it, every matched tool call is **blocked at the harness level** until a human cryptographically signs off.
+**Use case**: you want human approval enforced at the Claude Code session level, regardless of which tools the agent calls and without modifying any tool code.
+
+This is one of four HITL integration patterns — see the [root README](../README.md) for the full picture. Unlike the tool decorator, skill, and MCP patterns (which are triggered from inside the agent's decision loop), hooks fire at the harness level before the agent ever sees a tool result.
 
 ## How it works
 
