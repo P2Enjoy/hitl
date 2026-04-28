@@ -1,0 +1,117 @@
+{
+  "realm": "hitl",
+  "enabled": true,
+  "displayName": "HITL — Human-in-the-Loop",
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      {
+        "name": "hitl-user",
+        "description": "Verified human user allowed to sign HITL challenges",
+        "composite": false
+      }
+    ]
+  },
+  "defaultRoles": ["hitl-user"],
+  "clients": [
+    {
+      "clientId": "hitl-extension",
+      "name": "HITL Browser Extension",
+      "description": "Public PKCE client used by the browser extension",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:7331/*",
+        "https://*/hitl-extension-callback"
+      ],
+      "webOrigins": ["http://localhost:7331"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "ed25519-public-key",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "ed25519_public_key",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "ed25519_public_key",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "hitl-cli",
+      "name": "HITL CLI / Tool / MCP Service",
+      "description": "Confidential client for server-side tools calling the Admin API",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "hitl-cli-secret-change-me",
+      "attributes": {}
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "hitl-claims",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "ed25519-public-key-scope",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "ed25519_public_key",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "ed25519_public_key",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "userManagedAccessAllowed": false,
+  "internationalizationEnabled": false,
+  "attributes": {
+    "userProfileEnabled": "true"
+  },
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]}},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]}},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]}},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]}},{\"name\":\"ed25519_public_key\",\"displayName\":\"Ed25519 Public Key\",\"multivalued\":false,\"annotations\":{},\"validations\":{},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"required\":{}}],\"groups\":[]}"
+          ]
+        }
+      }
+    ]
+  }
+}

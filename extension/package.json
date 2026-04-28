@@ -1,0 +1,34 @@
+{
+  "name": "@hitl/extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cryptographic signing for human-in-the-loop AI permission requests",
+  "scripts": {
+    "build": "webpack --mode production",
+    "build:chrome": "TARGET=chrome webpack --mode production",
+    "build:firefox": "TARGET=firefox webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@types/node": "^20.12.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vitest/coverage-v8": "^1.5.0",
+    "copy-webpack-plugin": "^12.0.0",
+    "eslint": "^9.0.0",
+    "ts-loader": "^9.5.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.0"
+  },
+  "dependencies": {
+    "webextension-polyfill": "^0.10.0"
+  }
+}
