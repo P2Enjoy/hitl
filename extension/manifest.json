@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "HITL Signer",
+  "version": "1.0.0",
+  "description": "Cryptographic signing for human-in-the-loop AI permission requests",
+  "permissions": [
+    "storage",
+    "nativeMessaging",
+    "notifications",
+    "identity"
+  ],
+  "host_permissions": [
+    "http://localhost:8080/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "HITL Signer",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "native_messaging_hosts": ["com.hitl.signer"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "hitl-signer@hitl.dev",
+      "strict_min_version": "115.0"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

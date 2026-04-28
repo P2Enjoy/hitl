@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HITL Signer</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="header">
+      <span class="logo">🔐</span>
+      <span class="title">HITL Signer</span>
+      <span id="status-dot" class="dot dot-grey"></span>
+    </div>
+
+    <!-- Login view -->
+    <div id="view-login" class="view">
+      <p class="subtitle">Sign in to start approving AI tool requests.</p>
+      <button id="btn-login" class="btn btn-primary">Login with Keycloak</button>
+    </div>
+
+    <!-- Idle view (logged in, no pending challenge) -->
+    <div id="view-idle" class="view hidden">
+      <p class="username" id="username-label"></p>
+      <p class="subtitle">No pending approval requests.</p>
+      <button id="btn-logout" class="btn btn-ghost">Logout</button>
+    </div>
+
+    <!-- Approval view -->
+    <div id="view-approval" class="view hidden">
+      <div class="challenge-box">
+        <div class="challenge-label">Action requested:</div>
+        <div id="action-text" class="action-text"></div>
+        <div class="meta">
+          <span class="meta-item">Tool: <strong id="tool-name"></strong></span>
+          <span class="meta-item">Nonce: <strong id="nonce-preview"></strong></span>
+          <span class="meta-item">Expires in: <strong id="countdown"></strong>s</span>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button id="btn-deny" class="btn btn-danger">Deny</button>
+        <button id="btn-approve" class="btn btn-success">Approve</button>
+      </div>
+    </div>
+
+    <!-- Result view -->
+    <div id="view-result" class="view hidden">
+      <div id="result-icon" class="result-icon"></div>
+      <div id="result-text" class="result-text"></div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

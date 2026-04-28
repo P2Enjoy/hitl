@@ -1,0 +1,9 @@
+{
+  "name": "com.hitl.signer",
+  "description": "HITL signing host — HTTP relay between tools and the browser extension",
+  "path": "/usr/local/bin/hitl-signing-host",
+  "type": "stdio",
+  "allowed_extensions": [
+    "hitl-signer@hitl.dev"
+  ]
+}
