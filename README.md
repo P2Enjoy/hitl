@@ -27,7 +27,7 @@ Browser Extension (service worker)
          ▼
 {signature, access_token} returned to integration point
          │
-         │  fetch ed25519_public_key from Keycloak Admin API
+         │  fetch ed25519_public_key from OAuth server Admin API
          ▼
 Ed25519 verify(signature, challenge_bytes, public_key)
          │
@@ -35,7 +35,7 @@ Ed25519 verify(signature, challenge_bytes, public_key)
   APPROVED or DENIED — cryptographic proof
 ```
 
-The agent **cannot forge** a valid signature. The private key lives only in the browser extension (never exportable, cleared when the browser closes). Keycloak ensures only verified humans have registered keys.
+The agent **cannot forge** a valid signature. The private key lives only in the browser extension (never exportable, cleared when the browser closes). The OAuth server ensures only verified humans have registered keys.
 
 ## Four Integration Patterns
 
@@ -136,17 +136,17 @@ A practical example: a team shipping an AI coding assistant deploys Pattern 3 (M
 
 | Property | How it's enforced |
 |----------|-------------------|
-| Only verified humans can approve | Keycloak realm — no bot/service accounts |
+| Only verified humans can approve | OAuth server realm — no bot/service accounts |
 | Agent cannot self-approve | Private key never leaves the browser extension (`extractable:false`) |
 | Key cleared on browser close | `chrome.storage.session` — in-memory only |
 | Replay attacks prevented | Per-challenge nonce stored in Redis + timestamp TTL |
-| Key bound to authenticated identity | Public key registered in Keycloak at OAuth login |
+| Key bound to authenticated identity | Public key registered in OAuth server at login |
 | Approval is action-specific | Challenge includes action description, nonce, timestamp |
 
 ### Known Limitations
 
 - If the browser host OS is fully compromised (OS-level keylogger), the private key can be read at signing time
-- If Keycloak is compromised, public keys can be swapped
+- If the OAuth server is compromised, public keys can be swapped
 - The 5-minute TTL (configurable) requires the human to be present; long-running jobs need to re-request
 
 ---
@@ -158,8 +158,8 @@ hitl/
 ├── CLAUDE.md              # Agent/developer instructions
 ├── README.md              # This file
 ├── .env.example           # Environment variable template
-├── docker-compose.yml     # Keycloak + Redis
-├── oauth/                 # Keycloak realm config + init scripts
+├── docker-compose.yml     # OAuth server (Keycloak) + Redis
+├── oauth/                 # OAuth server realm config + init scripts
 ├── extension/             # Browser extension (TypeScript, MV3, Chrome+Firefox)
 ├── cli/                   # Core signing library + demo CLI
 ├── tool/                  # Pattern 1: @require_human_approval decorator
@@ -186,11 +186,11 @@ The `cli/` package is the shared foundation. `tool/`, `skill/`, `mcp/`, and `hoo
 
 ```bash
 cp .env.example .env
-# Edit .env — at minimum set KEYCLOAK_CLI_CLIENT_SECRET
+# Edit .env — at minimum set OAUTH_CLI_CLIENT_SECRET
 docker compose up -d
 ```
 
-Keycloak starts at `http://localhost:8080`. The `hitl` realm is imported automatically.
+The OAuth server starts at `http://localhost:8080`. The `hitl` realm is imported automatically.
 
 ### 2. Build & Load the Extension
 
@@ -218,7 +218,7 @@ uv pip install -e cli/ tool/ skill/ mcp/ hooks/
 
 ### 5. Log In via the Extension
 
-Click the extension icon → "Login with Keycloak". Your Ed25519 keypair is generated in-browser and your public key is registered with Keycloak.
+Click the extension icon → "Login". Your Ed25519 keypair is generated in-browser and your public key is registered with the OAuth server.
 
 ### 6. Try Each Pattern
 

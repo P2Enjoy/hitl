@@ -19,8 +19,8 @@ src/background/index.ts ← MV3 service worker
         │                  routes messages, manages state
         ├── crypto.ts      Ed25519 operations
         ├── keystore.ts    chrome.storage.session wrapper
-        ├── oauth.ts       PKCE login with Keycloak
-        ├── pubkey-register.ts  register public key in Keycloak
+        ├── oauth.ts       PKCE login with OAuth server
+        ├── pubkey-register.ts  register public key in OAuth server
         └── signing-server.ts  pending challenge queue
         │
         ▼
@@ -92,8 +92,8 @@ The signing host exposes:
 ```json
 {
   "signature": "base64url Ed25519 signature (64 bytes)",
-  "access_token": "Keycloak JWT",
-  "user_id": "Keycloak sub claim",
+  "access_token": "OAuth server JWT",
+  "user_id": "OAuth server sub claim",
   "nonce": "echo of challenge nonce",
   "timestamp": 1700000000
 }

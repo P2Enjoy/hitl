@@ -1,4 +1,4 @@
-# oauth/ — Keycloak Configuration
+# oauth/ — OAuth Server Configuration
 
 Reproducible Keycloak 24 setup for the HITL realm. The realm config is committed as `realm-export.json` and auto-imported on first container start.
 
@@ -31,7 +31,7 @@ docker compose up -d
 
 ## Modifying the Realm
 
-Make changes in the Keycloak admin console (`http://localhost:8080`), then export:
+Make changes in the OAuth server admin console (`http://localhost:8080`), then export:
 
 ```bash
 docker compose exec keycloak \
@@ -51,4 +51,4 @@ Commit the updated `realm-export.json`.
 | `hitl-extension` | Public | PKCE authorization_code | Browser extension |
 | `hitl-cli` | Confidential | client_credentials | cli, tool, mcp packages |
 
-The `hitl-cli` client secret is set via `KEYCLOAK_CLI_CLIENT_SECRET` in `.env`. The default value in `realm-export.json` is `hitl-cli-secret-change-me` — change it for any non-local deployment.
+The `hitl-cli` client secret is set via `OAUTH_CLI_CLIENT_SECRET` in `.env`. The default value in `realm-export.json` is `hitl-cli-secret-change-me` — change it for any non-local deployment.

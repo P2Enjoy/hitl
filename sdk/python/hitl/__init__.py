@@ -19,7 +19,7 @@ Low-level building blocks (for custom integrations):
 
     from hitl.challenge import generate_challenge, challenge_bytes, request_signature
     from hitl.verify import verify_signed_response
-    from hitl.keycloak import KeycloakClient
+    from hitl.oauth import OAuthClient
     from hitl.models import ChallengeRequest, SignedResponse
 """
 

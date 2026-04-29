@@ -7,7 +7,7 @@ from .exceptions import (
     HitlTimeout,
     HitlVerificationError,
 )
-from .keycloak import KeycloakClient
+from .oauth import OAuthClient
 from .models import SignedResponse
 from .verify import verify_signed_response
 
@@ -21,13 +21,13 @@ class HitlClient:
         await client.request_approval("delete /tmp/x")  # raises HitlDenied if denied
     """
 
-    def __init__(self, keycloak: KeycloakClient) -> None:
-        self._keycloak = keycloak
+    def __init__(self, oauth_client: OAuthClient) -> None:
+        self._oauth_client = oauth_client
 
     @classmethod
     def from_env(cls) -> "HitlClient":
         """Construct a client from environment variables."""
-        return cls(keycloak=KeycloakClient.from_env())
+        return cls(oauth_client=OAuthClient.from_env())
 
     async def request_approval(
         self,
@@ -69,7 +69,7 @@ class HitlClient:
             raise HitlVerificationError(f"Unexpected response format: {response!r}")
 
         try:
-            approved = await verify_signed_response(challenge, response, self._keycloak)
+            approved = await verify_signed_response(challenge, response, self._oauth_client)
         except HitlVerificationError:
             raise
         except Exception as exc:

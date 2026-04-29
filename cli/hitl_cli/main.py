@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from .challenge import check_extension_availability, generate_challenge, request_signature
-from .keycloak_client import KeycloakClient
+from .oauth_client import OAuthClient
 from .models import SignedResponse
 from .verifier import verify_signed_response
 
@@ -25,7 +25,7 @@ def cli() -> None:
 @cli.command()
 @click.option("--action", required=True, help="Description of the action requiring approval")
 @click.option("--tool", "tool_name", default="hitl-cli", help="Requesting tool name")
-@click.option("--skip-verify", is_flag=True, default=False, help="Skip Keycloak signature verification (dev only)")
+@click.option("--skip-verify", is_flag=True, default=False, help="Skip OAuth signature verification (dev only)")
 def request(action: str, tool_name: str, skip_verify: bool) -> None:
     """Request cryptographically verified human approval for an action."""
     asyncio.run(_request(action, tool_name, skip_verify))
@@ -69,9 +69,9 @@ async def _request(action: str, tool_name: str, skip_verify: bool) -> None:
         console.print("\n[yellow]SKIPPED VERIFICATION[/yellow] (--skip-verify flag set)")
         sys.exit(0)
 
-    keycloak = KeycloakClient.from_env()
+    oauth_client = OAuthClient.from_env()
     try:
-        approved = await verify_signed_response(challenge, response, keycloak)
+        approved = await verify_signed_response(challenge, response, oauth_client)
     except ValueError as exc:
         console.print(f"\n[red bold]VERIFICATION FAILED[/red bold] — {exc}")
         sys.exit(1)

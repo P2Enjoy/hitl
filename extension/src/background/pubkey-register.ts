@@ -1,4 +1,4 @@
-const KEYCLOAK_URL = "http://localhost:8080";
+const OAUTH_SERVER_URL = "http://localhost:8080";
 const REALM = "hitl";
 
 export async function registerPublicKey(
@@ -6,9 +6,9 @@ export async function registerPublicKey(
   userId: string,
   publicKeyBase64url: string,
 ): Promise<void> {
-  // Uses the Keycloak account REST API (user manages own account).
+  // Uses the OAuth server Account REST API (user manages own account).
   // The hitl-extension client must have "manage-account" scope.
-  const accountUrl = `${KEYCLOAK_URL}/realms/${REALM}/account`;
+  const accountUrl = `${OAUTH_SERVER_URL}/realms/${REALM}/account`;
 
   const resp = await fetch(accountUrl, {
     method: "POST",
@@ -32,7 +32,7 @@ async function registerPublicKeyViaAdmin(
   userId: string,
   publicKeyBase64url: string,
 ): Promise<void> {
-  const adminUrl = `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}`;
+  const adminUrl = `${OAUTH_SERVER_URL}/admin/realms/${REALM}/users/${userId}`;
 
   const resp = await fetch(adminUrl, {
     method: "PUT",

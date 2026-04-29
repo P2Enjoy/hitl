@@ -4,10 +4,10 @@
       "command": "hitl-mcp",
       "args": [],
       "env": {
-        "KEYCLOAK_HOST": "http://localhost:8080",
-        "KEYCLOAK_REALM": "hitl",
-        "KEYCLOAK_CLI_CLIENT_ID": "hitl-cli",
-        "KEYCLOAK_CLI_CLIENT_SECRET": "YOUR_SECRET_HERE",
+        "OAUTH_SERVER_URL": "http://localhost:8080",
+        "OAUTH_REALM": "hitl",
+        "OAUTH_CLI_CLIENT_ID": "hitl-cli",
+        "OAUTH_CLI_CLIENT_SECRET": "YOUR_SECRET_HERE",
         "EXTENSION_SIGNING_PORT": "7331",
         "CHALLENGE_TTL_SECONDS": "300",
         "NONCE_STORE_REDIS_URL": "redis://localhost:6379/0"

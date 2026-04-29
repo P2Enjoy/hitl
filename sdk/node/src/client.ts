@@ -9,20 +9,20 @@ import {
   HitlTimeout,
   HitlVerificationError,
 } from "./errors.js";
-import { KeycloakClient } from "./keycloak.js";
+import { OAuthClient } from "./oauth.js";
 import { isDenied } from "./types.js";
 import type { SignedResponse } from "./types.js";
 import { verifySignedResponse } from "./verify.js";
 
 export class HitlClient {
-  private readonly keycloak: KeycloakClient;
+  private readonly oauthClient: OAuthClient;
 
-  constructor(keycloak: KeycloakClient) {
-    this.keycloak = keycloak;
+  constructor(oauthClient: OAuthClient) {
+    this.oauthClient = oauthClient;
   }
 
   static fromEnv(): HitlClient {
-    return new HitlClient(KeycloakClient.fromEnv());
+    return new HitlClient(OAuthClient.fromEnv());
   }
 
   /**
@@ -64,7 +64,7 @@ export class HitlClient {
 
     let approved: boolean;
     try {
-      approved = await verifySignedResponse(challenge, response, this.keycloak);
+      approved = await verifySignedResponse(challenge, response, this.oauthClient);
     } catch (e) {
       if (e instanceof HitlVerificationError) throw e;
       throw new HitlVerificationError(String(e));

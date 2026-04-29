@@ -4,6 +4,11 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
     command: start-dev --import-realm
+    # Admin credentials come from .env.setup (never from .env).
+    # Falls back to insecure defaults if .env.setup is absent — change before production.
+    env_file:
+      - path: .env.setup
+        required: false
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-changeme}

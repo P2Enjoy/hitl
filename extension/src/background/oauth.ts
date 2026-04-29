@@ -1,11 +1,11 @@
 import { storeTokens, storeUser, clearAll, type StoredTokens } from "./keystore.js";
 
-const KEYCLOAK_URL = "http://localhost:8080";
+const OAUTH_SERVER_URL = "http://localhost:8080";
 const REALM = "hitl";
 const CLIENT_ID = "hitl-extension";
-const TOKEN_ENDPOINT = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token`;
-const USERINFO_ENDPOINT = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/userinfo`;
-const AUTH_ENDPOINT = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/auth`;
+const TOKEN_ENDPOINT = `${OAUTH_SERVER_URL}/realms/${REALM}/protocol/openid-connect/token`;
+const USERINFO_ENDPOINT = `${OAUTH_SERVER_URL}/realms/${REALM}/protocol/openid-connect/userinfo`;
+const AUTH_ENDPOINT = `${OAUTH_SERVER_URL}/realms/${REALM}/protocol/openid-connect/auth`;
 
 function generateCodeVerifier(): string {
   const arr = new Uint8Array(32);
@@ -26,7 +26,7 @@ async function sha256Base64url(plain: string): Promise<string> {
     .replace(/=/g, "");
 }
 
-export async function loginWithKeycloak(): Promise<StoredTokens> {
+export async function loginWithOAuth(): Promise<StoredTokens> {
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = await sha256Base64url(codeVerifier);
   const redirectUri = chrome.identity.getRedirectURL("callback");
@@ -51,6 +51,9 @@ export async function loginWithKeycloak(): Promise<StoredTokens> {
 
   return exchangeCode(code, codeVerifier, redirectUri);
 }
+
+// Backward-compatible alias
+export const loginWithKeycloak = loginWithOAuth;
 
 async function exchangeCode(
   code: string,

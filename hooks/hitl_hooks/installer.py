@@ -150,9 +150,9 @@ def _print_next_steps(path: Path, global_: bool) -> None:
     click.echo("  3. Install the native messaging host:")
     click.echo("       node extension/src/signing-host/install.js")
     click.echo("  4. Set environment variables (or add to .env):")
-    click.echo("       KEYCLOAK_HOST=http://localhost:8080")
-    click.echo("       KEYCLOAK_CLI_CLIENT_ID=hitl-cli")
-    click.echo("       KEYCLOAK_CLI_CLIENT_SECRET=<your-secret>")
+    click.echo("       OAUTH_SERVER_URL=http://localhost:8080")
+    click.echo("       OAUTH_CLI_CLIENT_ID=hitl-cli")
+    click.echo("       OAUTH_CLI_CLIENT_SECRET=<your-secret>")
     click.echo("  5. Test the hook:")
     click.echo("       echo '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"rm /tmp/x\"}}' | hitl-hook")
     if not global_:

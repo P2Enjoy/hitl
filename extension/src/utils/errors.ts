@@ -14,7 +14,7 @@ export class KeypairNotFoundError extends HitlExtensionError {
 
 export class NotAuthenticatedError extends HitlExtensionError {
   constructor() {
-    super("Not authenticated with Keycloak. Please log in first.");
+    super("Not authenticated with the OAuth server. Please log in first.");
     this.name = "NotAuthenticatedError";
   }
 }

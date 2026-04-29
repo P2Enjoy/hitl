@@ -2,7 +2,7 @@
 hitl-setup — one-stop setup CLI for the HITL infrastructure.
 
 Commands:
-    hitl-setup infra          Start Keycloak + Redis via Docker Compose
+    hitl-setup infra          Start OAuth server + Redis via Docker Compose
     hitl-setup infra stop     Stop the stack
     hitl-setup infra status   Show container status
     hitl-setup hooks          Install Claude Code PreToolUse hooks
@@ -28,13 +28,13 @@ from ..challenge import check_extension_availability
 
 @click.group("infra")
 def infra_group() -> None:
-    """Manage Keycloak + Redis infrastructure via Docker Compose."""
+    """Manage OAuth server + Redis infrastructure via Docker Compose."""
 
 
 @infra_group.command("start")
 @click.option("--foreground", is_flag=True, help="Run in foreground (no -d)")
 def infra_start(foreground: bool) -> None:
-    """Start Keycloak and Redis."""
+    """Start OAuth server and Redis."""
     rc = _docker.start(detach=not foreground)
     sys.exit(rc)
 
@@ -164,9 +164,13 @@ def status_cmd() -> None:
     else:
         click.echo("  Hooks:          not installed  (run: hitl-setup hooks)")
 
-    # Env vars
-    required = ["KEYCLOAK_HOST", "KEYCLOAK_CLI_CLIENT_ID", "KEYCLOAK_CLI_CLIENT_SECRET"]
-    missing = [v for v in required if not os.environ.get(v)]
+    # Env vars — accept either OAUTH_* (new) or KEYCLOAK_* (legacy)
+    pairs = [
+        ("OAUTH_SERVER_URL", "KEYCLOAK_HOST"),
+        ("OAUTH_CLI_CLIENT_ID", "KEYCLOAK_CLI_CLIENT_ID"),
+        ("OAUTH_CLI_CLIENT_SECRET", "KEYCLOAK_CLI_CLIENT_SECRET"),
+    ]
+    missing = [new for new, old in pairs if not os.environ.get(new) and not os.environ.get(old)]
     if missing:
         click.echo(f"  Env vars:       missing: {', '.join(missing)}")
     else:
@@ -201,7 +205,7 @@ def all_cmd(global_: bool, browser: str) -> None:
     click.echo("\nDone. Next:")
     click.echo("  1. Load extension/dist-chrome/ in Chrome (developer mode)")
     click.echo("  2. Click the extension icon → Login")
-    click.echo("  3. Set KEYCLOAK_HOST, KEYCLOAK_CLI_CLIENT_ID, KEYCLOAK_CLI_CLIENT_SECRET in .env")
+    click.echo("  3. Set OAUTH_SERVER_URL, OAUTH_CLI_CLIENT_ID, OAUTH_CLI_CLIENT_SECRET in .env")
 
 
 # ── root group ────────────────────────────────────────────────────────────────

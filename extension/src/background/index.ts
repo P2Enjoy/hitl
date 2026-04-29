@@ -8,7 +8,7 @@ import {
   loadUser,
   clearAll,
 } from "./keystore.js";
-import { loginWithKeycloak, logout } from "./oauth.js";
+import { loginWithOAuth, logout } from "./oauth.js";
 import { registerPublicKey } from "./pubkey-register.js";
 import { trackNonce } from "./nonce-tracker.js";
 import {
@@ -71,7 +71,7 @@ async function handleMessage(msg: BackgroundMessage): Promise<BackgroundResponse
 
     case "LOGIN": {
       try {
-        const tokens = await loginWithKeycloak();
+        const tokens = await loginWithOAuth();
         // Generate fresh keypair on every login
         const pair = await generateKeypair();
         await storeKeypair(pair);

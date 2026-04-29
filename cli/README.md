@@ -8,7 +8,7 @@ The `hitl` CLI is a demo that exercises the full sign→verify flow end-to-end, 
 
 ```bash
 uv pip install -e cli/
-cp .env.example .env  # fill in KEYCLOAK_CLI_CLIENT_SECRET
+cp .env.example .env  # fill in OAUTH_CLI_CLIENT_SECRET
 ```
 
 ## Usage
@@ -36,10 +36,10 @@ hitl health
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `KEYCLOAK_HOST` | — | Keycloak base URL |
-| `KEYCLOAK_REALM` | `hitl` | Keycloak realm name |
-| `KEYCLOAK_CLI_CLIENT_ID` | — | Service account client ID |
-| `KEYCLOAK_CLI_CLIENT_SECRET` | — | Service account client secret |
+| `OAUTH_SERVER_URL` | — | OAuth server base URL (or `KEYCLOAK_HOST`) |
+| `OAUTH_REALM` | `hitl` | Realm name (or `KEYCLOAK_REALM`) |
+| `OAUTH_CLI_CLIENT_ID` | — | Service account client ID (or `KEYCLOAK_CLI_CLIENT_ID`) |
+| `OAUTH_CLI_CLIENT_SECRET` | — | Service account client secret (or `KEYCLOAK_CLI_CLIENT_SECRET`) |
 | `EXTENSION_SIGNING_PORT` | `7331` | Native messaging host HTTP port |
 | `CHALLENGE_TTL_SECONDS` | `300` | Max age of a challenge |
 | `NONCE_STORE_REDIS_URL` | `redis://localhost:6379/0` | Redis URL for nonce tracking |
@@ -49,7 +49,7 @@ hitl health
 ```python
 from hitl_cli.challenge import generate_challenge, challenge_bytes, request_signature
 from hitl_cli.verifier import verify_signed_response
-from hitl_cli.keycloak_client import KeycloakClient
+from hitl_cli.oauth_client import OAuthClient
 from hitl_cli.models import ChallengeRequest, SignedResponse
 
 # Generate a challenge
@@ -59,8 +59,8 @@ challenge = generate_challenge("delete /tmp/x", tool_name="my-tool")
 response = await request_signature(challenge)
 
 # Verify
-keycloak = KeycloakClient.from_env()
-approved = await verify_signed_response(challenge, response, keycloak)
+oauth_client = OAuthClient.from_env()
+approved = await verify_signed_response(challenge, response, oauth_client)
 ```
 
 ## Tests

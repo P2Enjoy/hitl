@@ -1,5 +1,5 @@
 export { HitlClient } from "./client.js";
-export { KeycloakClient } from "./keycloak.js";
+export { OAuthClient, KeycloakClient } from "./oauth.js";
 export { generateChallenge, challengeBytes, requestSignature, checkExtensionAvailability } from "./challenge.js";
 export { verifySignedResponse } from "./verify.js";
 export {

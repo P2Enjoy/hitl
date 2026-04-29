@@ -58,10 +58,10 @@ Add to your Claude MCP config (`~/.claude/mcp_config.json` or project `.mcp.json
     "hitl": {
       "command": "hitl-mcp",
       "env": {
-        "KEYCLOAK_HOST": "http://localhost:8080",
-        "KEYCLOAK_REALM": "hitl",
-        "KEYCLOAK_CLI_CLIENT_ID": "hitl-cli",
-        "KEYCLOAK_CLI_CLIENT_SECRET": "your-secret"
+        "OAUTH_SERVER_URL": "http://localhost:8080",
+        "OAUTH_REALM": "hitl",
+        "OAUTH_CLI_CLIENT_ID": "hitl-cli",
+        "OAUTH_CLI_CLIENT_SECRET": "your-secret"
       }
     }
   }

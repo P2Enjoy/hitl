@@ -3,7 +3,7 @@
  * hitl-setup (Node.js) — one-stop setup CLI for the HITL infrastructure.
  *
  * Usage:
- *   npx @hitl/sdk setup infra          Start Keycloak + Redis
+ *   npx @hitl/sdk setup infra          Start OAuth server + Redis
  *   npx @hitl/sdk setup hooks          Install Claude Code PreToolUse hooks
  *   npx @hitl/sdk setup host           Install native messaging host
  *   npx @hitl/sdk setup all            Run all of the above
@@ -169,9 +169,13 @@ const commands = {
       console.log("  Hooks:          not installed  (run: npx @hitl/sdk setup hooks)");
     }
 
-    // Env vars
-    const required = ["KEYCLOAK_HOST", "KEYCLOAK_CLI_CLIENT_ID", "KEYCLOAK_CLI_CLIENT_SECRET"];
-    const missing = required.filter(v => !process.env[v]);
+    // Env vars — accept either OAUTH_* (new) or KEYCLOAK_* (legacy)
+    const pairs = [
+      ["OAUTH_SERVER_URL", "KEYCLOAK_HOST"],
+      ["OAUTH_CLI_CLIENT_ID", "KEYCLOAK_CLI_CLIENT_ID"],
+      ["OAUTH_CLI_CLIENT_SECRET", "KEYCLOAK_CLI_CLIENT_SECRET"],
+    ];
+    const missing = pairs.filter(([n, o]) => !process.env[n] && !process.env[o]).map(([n]) => n);
     if (missing.length) {
       console.log(`  Env vars:       missing: ${missing.join(", ")}`);
     } else {
@@ -195,7 +199,7 @@ const commands = {
     console.log("\nDone! Next:");
     console.log("  1. Load extension/dist-chrome/ in Chrome (developer mode)");
     console.log("  2. Click the extension icon → Login");
-    console.log("  3. Set KEYCLOAK_HOST, KEYCLOAK_CLI_CLIENT_ID, KEYCLOAK_CLI_CLIENT_SECRET in .env");
+    console.log("  3. Set OAUTH_SERVER_URL, OAUTH_CLI_CLIENT_ID, OAUTH_CLI_CLIENT_SECRET in .env");
   },
 
   help() {
@@ -203,7 +207,7 @@ const commands = {
 hitl-setup — HITL infrastructure setup
 
 Commands:
-  infra [start|stop|status|logs]   Manage Keycloak + Redis via Docker Compose
+  infra [start|stop|status|logs]   Manage OAuth server + Redis via Docker Compose
   hooks [--global] [--uninstall]   Install Claude Code PreToolUse hooks
   host  [--browser=chrome|firefox] Install native messaging host
   all                              Run infra + hooks + host
