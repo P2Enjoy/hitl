@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Claude Code skill for cryptographically verified HITL approval"
 requires-python = ">=3.11"
 dependencies = [
-    "hitl-cli",
+    "hitl-sdk @ {path = '../sdk/python'}",
     "click>=8.1",
 ]
 

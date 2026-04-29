@@ -84,15 +84,15 @@ def main() -> None:
 
 
 async def _run_hitl(action: str, tool_name: str, cfg: dict[str, Any]) -> bool:
-    from hitl_cli.challenge import check_extension_availability, generate_challenge, request_signature
-    from hitl_cli.keycloak_client import KeycloakClient
-    from hitl_cli.models import SignedResponse
-    from hitl_cli.verifier import verify_signed_response
+    from hitl import HitlClient, HitlDenied, HitlExtensionUnavailable, HitlVerificationError, HitlTimeout
 
-    # Check extension availability
-    available = await check_extension_availability()
-    if not available:
-        unavail_policy: str = cfg.get("unavailable_policy", "block")
+    unavail_policy: str = cfg.get("unavailable_policy", "block")
+
+    try:
+        client = HitlClient.from_env()
+        await client.request_approval(action, tool_name=f"claude-code:{tool_name}")
+        return True
+    except HitlExtensionUnavailable:
         if unavail_policy == "allow":
             print(
                 "hitl-hook WARNING: signing extension not reachable — "
@@ -100,34 +100,22 @@ async def _run_hitl(action: str, tool_name: str, cfg: dict[str, Any]) -> bool:
                 file=sys.stderr,
             )
             return True
-        else:
-            print(
-                "hitl-hook: signing extension not reachable — "
-                "blocking tool call (unavailable_policy=block)\n"
-                "Start the browser extension and native messaging host, or set "
-                "HITL_UNAVAILABLE_POLICY=allow to bypass.",
-                file=sys.stderr,
-            )
-            return False
-
-    challenge = generate_challenge(action, tool_name=f"claude-code:{tool_name}")
-
-    try:
-        response = await request_signature(challenge)
-    except Exception as exc:
-        print(f"hitl-hook: failed to get signature — {exc}", file=sys.stderr)
+        print(
+            "hitl-hook: signing extension not reachable — "
+            "blocking tool call (unavailable_policy=block)\n"
+            "Start the browser extension and native messaging host, or set "
+            "HITL_UNAVAILABLE_POLICY=allow to bypass.",
+            file=sys.stderr,
+        )
         return False
-
-    if isinstance(response, dict) and response.get("denied"):
+    except HitlDenied:
         return False
-
-    if not isinstance(response, SignedResponse):
-        print(f"hitl-hook: unexpected response — {response!r}", file=sys.stderr)
+    except HitlTimeout as exc:
+        print(f"hitl-hook: timed out waiting for approval — {exc}", file=sys.stderr)
         return False
-
-    try:
-        keycloak = KeycloakClient.from_env()
-        return await verify_signed_response(challenge, response, keycloak)
-    except ValueError as exc:
+    except HitlVerificationError as exc:
         print(f"hitl-hook: verification failed — {exc}", file=sys.stderr)
+        return False
+    except Exception as exc:
+        print(f"hitl-hook: unexpected error — {exc}", file=sys.stderr)
         return False

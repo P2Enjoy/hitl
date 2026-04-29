@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Demo tool showing @require_human_approval decorator for HITL"
 requires-python = ">=3.11"
 dependencies = [
-    "hitl-cli",
+    "hitl-sdk @ {path = '../sdk/python'}",
     "rich>=13.7",
 ]
 

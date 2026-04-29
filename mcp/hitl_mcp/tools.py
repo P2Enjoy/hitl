@@ -1,9 +1,7 @@
 from typing import Annotated
 
-from hitl_cli.challenge import check_extension_availability, generate_challenge, request_signature
-from hitl_cli.keycloak_client import KeycloakClient
-from hitl_cli.models import SignedResponse
-from hitl_cli.verifier import verify_signed_response
+from hitl import HitlClient, HitlDenied, HitlExtensionUnavailable, HitlVerificationError
+from hitl.challenge import check_extension_availability
 from pydantic import BaseModel, Field
 
 
@@ -34,71 +32,36 @@ async def request_approval(
 
     Returns an ApprovalResult. If approved=False, the tool should abort.
     """
-    if not await check_extension_availability():
-        return ApprovalResult(
-            approved=False,
-            challenge_id="",
-            user_id=None,
-            signature=None,
-            timestamp=0,
-            reason="HITL signing host not reachable — browser extension may not be running",
-        )
-
-    challenge = generate_challenge(action, tool_name)
-
+    client = HitlClient.from_env()
     try:
-        response = await request_signature(challenge)
+        response = await client.request_approval(action, tool_name=tool_name)
+        return ApprovalResult(
+            approved=True,
+            challenge_id=response.nonce,
+            user_id=response.user_id,
+            signature=response.signature,
+            timestamp=response.timestamp,
+        )
+    except HitlExtensionUnavailable as exc:
+        return ApprovalResult(
+            approved=False, challenge_id="", user_id=None, signature=None,
+            timestamp=0, reason=str(exc),
+        )
+    except HitlDenied as exc:
+        return ApprovalResult(
+            approved=False, challenge_id="", user_id=None, signature=None,
+            timestamp=0, reason=str(exc),
+        )
+    except HitlVerificationError as exc:
+        return ApprovalResult(
+            approved=False, challenge_id="", user_id=None, signature=None,
+            timestamp=0, reason=f"Verification failed: {exc}",
+        )
     except Exception as exc:
         return ApprovalResult(
-            approved=False,
-            challenge_id=challenge.nonce,
-            user_id=None,
-            signature=None,
-            timestamp=challenge.timestamp,
-            reason=f"Failed to get signature: {exc}",
+            approved=False, challenge_id="", user_id=None, signature=None,
+            timestamp=0, reason=f"Unexpected error: {exc}",
         )
-
-    if isinstance(response, dict) and response.get("denied"):
-        return ApprovalResult(
-            approved=False,
-            challenge_id=challenge.nonce,
-            user_id=None,
-            signature=None,
-            timestamp=challenge.timestamp,
-            reason="User denied the request",
-        )
-
-    if not isinstance(response, SignedResponse):
-        return ApprovalResult(
-            approved=False,
-            challenge_id=challenge.nonce,
-            user_id=None,
-            signature=None,
-            timestamp=challenge.timestamp,
-            reason=f"Unexpected response format: {response!r}",
-        )
-
-    keycloak = KeycloakClient.from_env()
-    try:
-        approved = await verify_signed_response(challenge, response, keycloak)
-    except ValueError as exc:
-        return ApprovalResult(
-            approved=False,
-            challenge_id=challenge.nonce,
-            user_id=response.user_id,
-            signature=None,
-            timestamp=challenge.timestamp,
-            reason=f"Verification failed: {exc}",
-        )
-
-    return ApprovalResult(
-        approved=approved,
-        challenge_id=challenge.nonce,
-        user_id=response.user_id,
-        signature=response.signature if approved else None,
-        timestamp=challenge.timestamp,
-        reason=None if approved else "Signature verification failed",
-    )
 
 
 async def check_hitl_availability() -> AvailabilityStatus:

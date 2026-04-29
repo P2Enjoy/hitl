@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Claude Code PreToolUse hooks for enforced HITL approval — blocks tool calls until a human cryptographically signs off"
 requires-python = ">=3.11"
 dependencies = [
-    "hitl-cli",
+    "hitl-sdk @ {path = '../sdk/python'}",
     "click>=8.1",
     "python-dotenv>=1.0",
 ]
